@@ -1,91 +1,186 @@
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, BarChart, Users, DollarSign } from "lucide-react"
-import Link from "next/link"
+import { BarChart, LineChart, PieChart, TrendingUp, Users, Zap } from "lucide-react"
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Bar,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts"
+
+const dailyHashRateData = [
+  { name: "Day 1", hashRate: 1200 },
+  { name: "Day 2", hashRate: 1350 },
+  { name: "Day 3", hashRate: 1400 },
+  { name: "Day 4", hashRate: 1300 },
+  { name: "Day 5", hashRate: 1500 },
+  { name: "Day 6", hashRate: 1600 },
+  { name: "Day 7", hashRate: 1550 },
+]
+
+const poolDistributionData = [
+  { name: "Pool A", value: 400, color: "#8884d8" },
+  { name: "Pool B", value: 300, color: "#82ca9d" },
+  { name: "Pool C", value: 200, color: "#ffc658" },
+  { name: "Other", value: 100, color: "#ff8042" },
+]
+
+const minerStatusData = [
+  { name: "Online", value: 85, color: "#82ca9d" },
+  { name: "Offline", value: 15, color: "#ffc658" },
+]
 
 export default function MiningStatsPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1 py-12 md:py-20">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Mining Statistics</h1>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Track real-time performance, earnings, and network data.
-              </p>
+    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold mb-8">Mining Statistics</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Hash Rate</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">1.5 TH/s</div>
+            <p className="text-xs text-muted-foreground">+5.2% from last week</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Miners</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2,345</div>
+            <p className="text-xs text-muted-foreground">+120 since yesterday</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Daily Earnings (ETH)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0.05 ETH</div>
+            <p className="text-xs text-muted-foreground">~$100.00 USD</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Daily Hash Rate Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dailyHashRateData}>
+                  <defs>
+                    <linearGradient id="colorHashRate" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="hashRate"
+                    stroke="#8884d8"
+                    fillOpacity={1}
+                    fill="url(#colorHashRate)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Current Hash Rate</CardTitle>
-                <LineChart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12,345 MH/s</div>
-                <p className="text-xs text-muted-foreground">+5.2% from yesterday</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Daily Earnings</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$1,234.56</div>
-                <p className="text-xs text-muted-foreground">+10.1% from last week</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Miners</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">5,678</div>
-                <p className="text-xs text-muted-foreground">+150 since last month</p>
-              </CardContent>
-            </Card>
-            <Card className="md:col-span-2 lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Hash Rate Over Time</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
-                  {/* Placeholder for a chart */}
-                  <BarChart className="h-full w-full text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="md:col-span-2 lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Network Difficulty & Price</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
-                  {/* Placeholder for a chart */}
-                  <LineChart className="h-full w-full text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Pool Hash Rate Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={poolDistributionData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label
+                  >
+                    {poolDistributionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-muted-foreground">
-              For more detailed statistics and personalized reports, please{" "}
-              <Link href="/dashboard" className="text-primary hover:underline">
-                log in to your dashboard
-              </Link>
-              .
-            </p>
-          </div>
-        </div>
-      </main>
-      <Footer />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Miner Status Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={minerStatusData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8884d8">
+                    {minerStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Historical Earnings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dailyHashRateData}>
+                  {" "}
+                  {/* Reusing data for simplicity */}
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <LineChart type="monotone" dataKey="hashRate" stroke="#82ca9d" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

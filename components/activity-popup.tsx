@@ -1,66 +1,71 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { CheckCircle, DollarSign, Zap, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { X } from "lucide-react"
-import { useEffect, useState } from "react"
-import type { ActivityItem } from "@/lib/activity-generator"
-import { cn } from "@/lib/utils"
+export interface ActivityItem {
+  type: "payout" | "signup" | "mining"
+  user: string
+  amount?: string
+  message: string
+}
 
 interface ActivityPopupProps {
   activity: ActivityItem | null
   onClose: () => void
 }
 
-export default function ActivityPopup({ activity, onClose }: ActivityPopupProps) {
+export function ActivityPopup({ activity, onClose }: ActivityPopupProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     if (activity) {
       setIsVisible(true)
-      const timer = setTimeout(() => {
-        setIsVisible(false)
-      }, 5000) // Popup visible for 5 seconds
-      return () => clearTimeout(timer)
     } else {
       setIsVisible(false)
     }
   }, [activity])
 
-  const handleAnimationComplete = () => {
-    if (!isVisible) {
-      onClose()
+  const getIcon = (type: ActivityItem["type"]) => {
+    switch (type) {
+      case "payout":
+        return <DollarSign className="h-5 w-5 text-green-500" />
+      case "signup":
+        return <CheckCircle className="h-5 w-5 text-blue-500" />
+      case "mining":
+        return <Zap className="h-5 w-5 text-yellow-500" />
+      default:
+        return null
     }
   }
 
-  if (!activity) return null
-
   return (
-    <AnimatePresence onExitComplete={handleAnimationComplete}>
-      {isVisible && (
+    <AnimatePresence>
+      {isVisible && activity && (
         <motion.div
-          initial={{ y: "100%", opacity: 0 }}
-          animate={{ y: "0%", opacity: 1 }}
-          exit={{ y: "100%", opacity: 0 }}
-          transition={{ type: "spring", stiffness: 100, damping: 20, duration: 0.5 }}
+          initial={{ opacity: 0, y: 50, x: "-50%" }}
+          animate={{ opacity: 1, y: 0, x: "-50%" }}
+          exit={{ opacity: 0, y: 50, x: "-50%" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           className={cn(
-            "fixed bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 p-4 rounded-lg shadow-lg z-50",
+            "fixed bottom-4 left-1/2 -translate-x-1/2 z-50",
+            "bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4",
             "flex items-center space-x-3 border border-gray-200 dark:border-gray-700",
-            "w-[calc(100%-2rem)] max-w-sm", // Responsive width
+            "max-w-xs w-full",
           )}
+          role="alert"
         >
-          <div className="flex-shrink-0">
-            {/* You can add an icon or avatar here based on activity type */}
-            <span className="text-primary text-xl">⚡</span>
-          </div>
+          <div className="flex-shrink-0">{getIcon(activity.type)}</div>
           <div className="flex-grow">
-            <p className="font-semibold text-sm">{activity.user}</p>
-            <p className="text-xs text-muted-foreground">{activity.message}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{activity.user}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{activity.message}</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsVisible(false)} className="flex-shrink-0">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close notification</span>
+          <Button variant="ghost" size="icon" onClick={onClose} className="flex-shrink-0">
+            <X className="h-4 w-4 text-gray-500" />
+            <span className="sr-only">Close</span>
           </Button>
         </motion.div>
       )}

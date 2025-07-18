@@ -1,71 +1,89 @@
 "use client"
 
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
-import { ArrowRight } from "lucide-react"
+import { Send } from "lucide-react"
 
-export default function TypingPromptInput() {
-  const phrases = [
-    "Start mining Ethereum...",
-    "Calculate your profits...",
-    "Explore mining packages...",
-    "Join our mining pool...",
-    "Learn about cloud mining...",
-  ]
-  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
+interface TypingPromptInputProps {
+  prompts: string[]
+  onSend?: (message: string) => void
+  delay?: number
+  typingSpeed?: number
+}
+
+export function TypingPromptInput({ prompts, onSend, delay = 2000, typingSpeed = 50 }: TypingPromptInputProps) {
+  const [currentPromptIndex, setCurrentPromptIndex] = useState(0)
   const [displayedText, setDisplayedText] = useState("")
   const [isTyping, setIsTyping] = useState(true)
-  const [charIndex, setCharIndex] = useState(0)
+  const [inputValue, setInputValue] = useState("")
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const promptCycleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const currentPrompt = prompts[currentPromptIndex]
 
   useEffect(() => {
-    let typingInterval: NodeJS.Timeout | null = null
-    let deletingInterval: NodeJS.Timeout | null = null
+    if (!currentPrompt) return
 
-    if (isTyping) {
-      typingInterval = setInterval(() => {
-        if (charIndex < phrases[currentPhraseIndex].length) {
-          setDisplayedText((prev) => prev + phrases[currentPhraseIndex][charIndex])
-          setCharIndex((prev) => prev + 1)
-        } else {
-          clearInterval(typingInterval!)
-          setTimeout(() => setIsTyping(false), 1500) // Pause at end of typing
-        }
-      }, 70) // Typing speed
-    } else {
-      deletingInterval = setInterval(() => {
-        if (displayedText.length > 0) {
-          setDisplayedText((prev) => prev.slice(0, -1))
-        } else {
-          clearInterval(deletingInterval!)
-          setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length)
-          setCharIndex(0)
-          setIsTyping(true)
-        }
-      }, 40) // Deleting speed
+    let charIndex = 0
+    setIsTyping(true)
+    setDisplayedText("")
+
+    const typeChar = () => {
+      if (charIndex < currentPrompt.length) {
+        setDisplayedText((prev) => prev + currentPrompt.charAt(charIndex))
+        charIndex++
+        typingTimeoutRef.current = setTimeout(typeChar, typingSpeed)
+      } else {
+        setIsTyping(false)
+        promptCycleTimeoutRef.current = setTimeout(() => {
+          setCurrentPromptIndex((prevIndex) => (prevIndex + 1) % prompts.length)
+        }, delay)
+      }
     }
+
+    typingTimeoutRef.current = setTimeout(typeChar, typingSpeed)
 
     return () => {
-      if (typingInterval) clearInterval(typingInterval)
-      if (deletingInterval) clearInterval(deletingInterval)
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+      if (promptCycleTimeoutRef.current) clearTimeout(promptCycleTimeoutRef.current)
     }
-  }, [displayedText, isTyping, charIndex, currentPhraseIndex, phrases])
+  }, [currentPrompt, typingSpeed, delay, prompts])
+
+  const handleSend = () => {
+    if (inputValue.trim()) {
+      onSend?.(inputValue.trim())
+      setInputValue("")
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSend()
+    }
+  }
 
   return (
-    <div className="relative w-full max-w-xl mx-auto">
+    <div className="relative flex w-full max-w-md items-center">
       <Input
         type="text"
-        placeholder={displayedText + (isTyping ? "|" : "")}
-        className="w-full py-3 pl-5 pr-12 rounded-full border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 frost-glass-input"
-        readOnly
+        placeholder={displayedText}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyPress={handleKeyPress}
+        className="pr-12 h-12 text-base"
+        disabled={isTyping}
       />
       <Button
-        type="submit"
+        type="button"
         size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+        className="absolute right-2 h-10 w-10"
+        onClick={handleSend}
+        disabled={isTyping || !inputValue.trim()}
       >
-        <ArrowRight className="h-5 w-5 text-white" />
-        <span className="sr-only">Submit</span>
+        <Send className="h-5 w-5" />
+        <span className="sr-only">Send message</span>
       </Button>
     </div>
   )

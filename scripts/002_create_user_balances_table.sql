@@ -1,12 +1,21 @@
-CREATE TABLE user_balances (
-  user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- In a real app, link this to your auth.users table
-  balance NUMERIC(20, 8) NOT NULL DEFAULT 0.0,
+CREATE TABLE IF NOT EXISTS user_balances (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  balance NUMERIC(18, 8) NOT NULL DEFAULT 0.0,
   currency TEXT NOT NULL DEFAULT 'ETH',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert a dummy balance for a user (e.g., user_id '1' for demonstration)
--- In a real app, this would be managed by your user registration/onboarding process.
-INSERT INTO user_balances (user_id, balance, currency)
-VALUES ('00000000-0000-0000-0000-000000000001', 10.5, 'ETH')
-ON CONFLICT (user_id) DO UPDATE SET balance = user_balances.balance;
+-- Enable Row Level Security (RLS)
+ALTER TABLE user_balances ENABLE ROW LEVEL SECURITY;
+
+-- Policy for users to read their own balance
+CREATE POLICY "Users can view their own balance" ON user_balances
+FOR SELECT USING (auth.uid() = user_id);
+
+-- Policy for users to update their own balance (e.g., after a withdrawal or mining)
+CREATE POLICY "Users can update their own balance" ON user_balances
+FOR UPDATE USING (auth.uid() = user_id);
+
+-- Policy for inserting new user balances (e.g., on user signup)
+CREATE POLICY "Users can create their own balance entry" ON user_balances
+FOR INSERT WITH CHECK (auth.uid() = user_id);

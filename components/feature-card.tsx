@@ -1,18 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import FrostedGlassIcon from "./frosted-glass-icon"
-import type { LucideIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type React from "react"
 
-interface FeatureCardProps {
+interface FeatureCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  icon: React.ElementType
   title: string
   description: string
-  icon: LucideIcon
 }
 
-export default function FeatureCard({ title, description, icon }: FeatureCardProps) {
+export default function FeatureCard({ icon: Icon, title, description, className, ...props }: FeatureCardProps) {
   return (
-    <Card className="flex flex-col items-center text-center p-6 bg-white/80 dark:bg-black/20 backdrop-blur-md border border-primary/10 shadow-lg">
-      <FrostedGlassIcon icon={icon} className="mb-4" />
-      <CardHeader>
+    <Card className={cn("flex flex-col items-center text-center p-6", className)} {...props}>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4">
+          <Icon className="h-8 w-8" />
+        </div>
         <CardTitle className="text-xl font-bold">{title}</CardTitle>
       </CardHeader>
       <CardContent>

@@ -1,91 +1,139 @@
 "use client"
 
+import { cn } from "@/lib/utils"
+
 import { useEffect, useRef } from "react"
 
-export default function HeroParticles() {
+interface ParticlesProps {
+  className?: string
+  quantity?: number
+  staticity?: number
+  ease?: number
+  refresh?: boolean
+}
+
+export function HeroParticles({
+  className = "",
+  quantity = 100,
+  staticity = 50,
+  ease = 50,
+  refresh = false,
+}: ParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const particlesRef = useRef<Particle[]>([])
-  const animationFrameId = useRef<number | null>(null)
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
+  const mouse = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const canvasSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 })
+  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1
+  const particles = useRef<any[]>([])
 
-  class Particle {
-    x: number
-    y: number
-    size: number
-    speedX: number
-    speedY: number
-    color: string
+  const initParticle = (particle: any, x?: number, y?: number) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-    constructor(canvas: HTMLCanvasElement) {
-      this.x = Math.random() * canvas.width
-      this.y = Math.random() * canvas.height
-      this.size = Math.random() * 5 + 1 // Particles between 1 and 6px
-      this.speedX = Math.random() * 3 - 1.5 // -1.5 to 1.5
-      this.speedY = Math.random() * 3 - 1.5
-      this.color = "rgba(255, 255, 255, 0.8)" // White particles
-    }
+    const vx = (Math.random() - 0.5) * staticity
+    const vy = (Math.random() - 0.5) * staticity
+    const radius = Math.random() * 1 + 0.5 // Smaller particles
 
-    update(canvas: HTMLCanvasElement) {
-      this.x += this.speedX
-      this.y += this.speedY
+    particle.x = x || Math.random() * canvas.width
+    particle.y = y || Math.random() * canvas.height
+    particle.vx = vx
+    particle.vy = vy
+    particle.radius = radius
+  }
 
-      // Bounce off walls
-      if (this.x < 0 || this.x > canvas.width) this.speedX *= -1
-      if (this.y < 0 || this.y > canvas.height) this.speedY *= -1
-    }
+  const createCircle = (x: number, y: number) => {
+    const particle = {}
+    initParticle(particle, x, y)
+    particles.current.push(particle)
+  }
 
-    draw(ctx: CanvasRenderingContext2D) {
-      ctx.fillStyle = this.color
+  const updateParticles = () => {
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext("2d")
+    if (!ctx || !canvas) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = "#FFFFFF" // White particles
+
+    for (let i = 0; i < particles.current.length; i++) {
+      const p = particles.current[i]
+
+      const dx = mouse.current.x * dpr - p.x
+      const dy = mouse.current.y * dpr - p.y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      // Calculate force and direction
+      const force = (-mouse.current.x * dpr * ease) / (distance * distance)
+      const angle = Math.atan2(dy, dx)
+
+      p.vx += force * Math.cos(angle)
+      p.vy += force * Math.sin(angle)
+
+      p.x += p.vx
+      p.y += p.vy
+
+      // Decay velocity
+      p.vx *= 0.95
+      p.vy *= 0.95
+
+      // Boundary check
+      if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+        initParticle(p)
+      }
+
       ctx.beginPath()
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+      ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI)
       ctx.fill()
+    }
+    requestAnimationFrame(updateParticles)
+  }
+
+  const resizeCanvas = () => {
+    if (canvasContainerRef.current && canvasRef.current) {
+      canvasSize.current.w = canvasContainerRef.current.offsetWidth
+      canvasSize.current.h = canvasContainerRef.current.offsetHeight
+      canvasRef.current.width = canvasSize.current.w * dpr
+      canvasRef.current.height = canvasSize.current.h * dpr
+      canvasRef.current.style.width = canvasSize.current.w + "px"
+      canvasRef.current.style.height = canvasSize.current.h + "px"
     }
   }
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-
-    const init = () => {
-      particlesRef.current = []
-      const numberOfParticles = (canvas.width * canvas.height) / 9000 // Adjust density
-      for (let i = 0; i < numberOfParticles; i++) {
-        particlesRef.current.push(new Particle(canvas))
-      }
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (let i = 0; i < particlesRef.current.length; i++) {
-        particlesRef.current[i].update(canvas)
-        particlesRef.current[i].draw(ctx)
-      }
-      animationFrameId.current = requestAnimationFrame(animate)
-    }
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      init() // Re-initialize particles on resize
-    }
-
-    window.addEventListener("resize", handleResize)
-
-    init()
-    animate()
+    resizeCanvas()
+    window.addEventListener("resize", resizeCanvas)
 
     return () => {
-      window.removeEventListener("resize", handleResize)
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current)
+      window.removeEventListener("resize", resizeCanvas)
+    }
+  }, [dpr])
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particles.current = []
+      for (let i = 0; i < quantity; i++) {
+        createCircle(0, 0) // Particles will be re-initialized to random positions
       }
+      updateParticles()
+    }
+  }, [quantity, staticity, ease, refresh])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.current.x = e.clientX
+      mouse.current.y = e.clientY
+    }
+
+    window.addEventListener("mousemove", handleMouseMove)
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0 opacity-50" />
+  return (
+    <div ref={canvasContainerRef} className={cn("absolute inset-0", className)}>
+      <canvas ref={canvasRef} />
+    </div>
+  )
 }

@@ -1,79 +1,40 @@
-export interface ActivityItem {
-  id: string
-  user: string
-  message: string
-  type: "withdraw" | "deposit" | "claim"
-  timestamp: Date
-}
+import type { ActivityItem } from "@/components/activity-popup"
 
-const randomNames = [
-  "Alice",
-  "Bob",
-  "Charlie",
-  "Diana",
-  "Eve",
-  "Frank",
-  "Grace",
-  "Heidi",
-  "Ivan",
-  "Judy",
-  "Liam",
-  "Olivia",
-  "Noah",
-  "Emma",
-  "Jackson",
-  "Ava",
-  "Lucas",
-  "Sophia",
-  "Aiden",
-  "Isabella",
+const users = ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi", "Ivan", "Judy"]
+
+const activities: ActivityItem[] = [
+  {
+    type: "payout",
+    user: "Just now, {user} received a payout!",
+    amount: "0.005 ETH",
+    message: "received a payout of {amount}!",
+  },
+  {
+    type: "signup",
+    user: "Welcome, {user}!",
+    message: "just joined PulseCloud!",
+  },
+  {
+    type: "mining",
+    user: "Great job, {user}!",
+    amount: "0.0001 ETH",
+    message: "mined {amount} in the last hour!",
+  },
 ]
 
-const actualUsernames = [
-  "CryptoKing",
-  "MinerPro",
-  "ETHMaster",
-  "HashHunter",
-  "BlockBoss",
-  "CoinCollector",
-  "DigitalGold",
-  "ChainLinker",
-  "DecentralizedDev",
-  "TokenTitan",
-]
+export function generateRandomActivity(): ActivityItem {
+  const randomUser = users[Math.floor(Math.random() * users.length)]
+  const randomActivityTemplate = activities[Math.floor(Math.random() * activities.length)]
 
-const generateRandomActivity = (): ActivityItem => {
-  const type = ["withdraw", "deposit", "claim"][Math.floor(Math.random() * 3)] as ActivityItem["type"]
-  const isActualUser = Math.random() > 0.5 // 50% chance of being an actual username
-  const user = isActualUser
-    ? actualUsernames[Math.floor(Math.random() * actualUsernames.length)]
-    : randomNames[Math.floor(Math.random() * randomNames.length)]
-
-  let message: string
-  const amount = (Math.random() * 500 + 10).toFixed(2) // Random amount between 10 and 510
-
-  switch (type) {
-    case "withdraw":
-      message = `withdrew $${amount}`
-      break
-    case "deposit":
-      message = `deposited $${amount}`
-      break
-    case "claim":
-      const ethAmount = (Math.random() * 0.1 + 0.001).toFixed(4) // Random ETH amount
-      message = `claimed ${ethAmount} ETH from mining pool`
-      break
+  let message = randomActivityTemplate.message.replace("{user}", randomUser)
+  if (randomActivityTemplate.amount) {
+    message = message.replace("{amount}", randomActivityTemplate.amount)
   }
 
   return {
-    id: Math.random().toString(36).substring(2, 15),
-    user,
-    message,
-    type,
-    timestamp: new Date(),
+    type: randomActivityTemplate.type,
+    user: randomUser,
+    amount: randomActivityTemplate.amount,
+    message: message,
   }
-}
-
-export const activityGenerator = {
-  generate: generateRandomActivity,
 }

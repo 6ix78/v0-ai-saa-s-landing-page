@@ -1,68 +1,88 @@
 "use client"
 
-import type React from "react"
-
 import { usePathname } from "next/navigation"
-import { useEffect, useState, useRef } from "react"
-import ActivityPopup from "@/components/activity-popup"
-import { activityGenerator, type ActivityItem } from "@/lib/activity-generator"
-import Footer from "@/components/footer" // Declare the Footer component
+
+import type React from "react"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import Navbar from "@/components/navbar"
+import { Footer } from "@/components/footer" // Ensure named export
+import { ActivityPopup } from "@/components/activity-popup" // Ensure named export
+import { generateRandomActivity } from "@/lib/activity-generator"
+import { useState, useEffect, useRef } from "react"
+import type { ActivityItem } from "@/lib/activity-generator"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [popupQueue, setPopupQueue] = useState<ActivityItem[]>([])
   const [activePopup, setActivePopup] = useState<ActivityItem | null>(null)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const popupTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const excludedPaths = ["/dashboard", "/auth/signin", "/auth/signup"]
+  const excludedPathsForFooterAndNavbar = ["/dashboard", "/auth/signin", "/auth/signup"]
+  const shouldShowFooterAndNavbar = !excludedPathsForFooterAndNavbar.some((path) => pathname.startsWith(path))
 
-  const shouldShowActivityPopup = !excludedPaths.some((path) => pathname.startsWith(path))
-  const shouldShowFooter = !excludedPaths.some((path) => pathname.startsWith(path))
+  // Activity popup should not show on dashboard, auth, or chat pages
+  const excludedPathsForActivityPopup = ["/dashboard", "/auth", "/chat"]
+  const shouldShowActivityPopup = !excludedPathsForActivityPopup.some((path) => pathname.startsWith(path))
 
   useEffect(() => {
-    if (shouldShowActivityPopup) {
-      // Start generating activities if not already running
-      if (!intervalRef.current) {
-        intervalRef.current = setInterval(() => {
-          setPopupQueue((prev) => [...prev, activityGenerator.generate()])
-        }, 7000) // Generate a new activity every 7 seconds
+    if (!shouldShowActivityPopup) {
+      // Clear any active popups and queue if we navigate to an excluded path
+      if (popupTimerRef.current) {
+        clearTimeout(popupTimerRef.current)
+        popupTimerRef.current = null
       }
-    } else {
-      // Clear interval and queue if on an excluded path
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      setPopupQueue([])
       setActivePopup(null)
+      setPopupQueue([])
+      return
     }
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [pathname, shouldShowActivityPopup])
+    const interval = setInterval(() => {
+      setPopupQueue((prevQueue) => {
+        const newActivity = generateRandomActivity()
+        return [...prevQueue, newActivity]
+      })
+    }, 5000) // Add a new activity every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [shouldShowActivityPopup])
 
   useEffect(() => {
-    // Process the queue
-    if (!activePopup && popupQueue.length > 0) {
-      const [nextPopup, ...rest] = popupQueue
+    if (shouldShowActivityPopup && !activePopup && popupQueue.length > 0) {
+      const [nextPopup, ...remainingQueue] = popupQueue
       setActivePopup(nextPopup)
-      setPopupQueue(rest)
+      setPopupQueue(remainingQueue)
+
+      // Set a timer to clear the active popup after a duration
+      popupTimerRef.current = setTimeout(() => {
+        setActivePopup(null)
+      }, 4000) // Popup visible for 4 seconds
     }
-  }, [activePopup, popupQueue])
+  }, [activePopup, popupQueue, shouldShowActivityPopup])
 
   const handlePopupClose = () => {
     setActivePopup(null)
+    if (popupTimerRef.current) {
+      clearTimeout(popupTimerRef.current)
+      popupTimerRef.current = null
+    }
   }
 
   return (
-    <>
-      {children}
-      {shouldShowActivityPopup && <ActivityPopup activity={activePopup} onClose={handlePopupClose} />}
-      {shouldShowFooter && <Footer />}
-    </>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {shouldShowFooterAndNavbar && <Navbar />}
+          {children}
+          {shouldShowFooterAndNavbar && <Footer />}
+          {shouldShowActivityPopup && activePopup && (
+            <ActivityPopup activity={activePopup} onClose={handlePopupClose} />
+          )}
+        </ThemeProvider>
+      </body>
+    </html>
   )
 }

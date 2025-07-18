@@ -1,55 +1,43 @@
-import { supabase } from "@/lib/supabase"
-import { type NextRequest, NextResponse } from "next/server"
+import { createServerSupabaseClient } from "@/lib/supabase"
+import { NextResponse } from "next/server"
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const post_slug = searchParams.get("post_slug")
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const blogPostSlug = searchParams.get("slug")
 
-  if (!post_slug) {
-    return NextResponse.json({ error: "Post slug is required" }, { status: 400 })
+  if (!blogPostSlug) {
+    return NextResponse.json({ error: "Blog post slug is required" }, { status: 400 })
   }
 
-  try {
-    const { data, error } = await supabase
-      .from("comments")
-      .select("*")
-      .eq("post_slug", post_slug)
-      .order("created_at", { ascending: false })
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from("comments")
+    .select("*")
+    .eq("blog_post_slug", blogPostSlug)
+    .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching comments:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json(data)
-  } catch (error: any) {
-    console.error("Unexpected error fetching comments:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  if (error) {
+    console.error("Error fetching comments:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  return NextResponse.json({ comments: data })
 }
 
-export async function POST(req: NextRequest) {
-  const { post_slug, author_name, content, author_email } = await req.json()
+export async function POST(request: Request) {
+  const { blog_post_slug, author, content } = await request.json()
 
-  if (!post_slug || !author_name || !content) {
-    return NextResponse.json({ error: "Post slug, author name, and content are required" }, { status: 400 })
+  if (!blog_post_slug || !author || !content) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
-  try {
-    const { data, error } = await supabase
-      .from("comments")
-      .insert([{ post_slug, author_name, content, author_email }])
-      .select() // Select the inserted row to return it
-      .single() // Expect a single row back
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase.from("comments").insert({ blog_post_slug, author, content }).select().single() // Return the inserted row
 
-    if (error) {
-      console.error("Error inserting comment:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json(data, { status: 201 })
-  } catch (error: any) {
-    console.error("Unexpected error inserting comment:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  if (error) {
+    console.error("Error inserting comment:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  return NextResponse.json({ comment: data }, { status: 201 })
 }

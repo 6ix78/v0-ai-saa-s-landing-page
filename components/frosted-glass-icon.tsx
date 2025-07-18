@@ -5,10 +5,16 @@ interface FrostedGlassIconProps extends React.HTMLAttributes<HTMLDivElement> {
   icon: React.ElementType
 }
 
-export default function FrostedGlassIcon({ icon: Icon, className, ...props }: FrostedGlassIconProps) {
+export function FrostedGlassIcon({ icon: Icon, className, ...props }: FrostedGlassIconProps) {
   return (
-    <div className={cn("frost-glass flex h-16 w-16 items-center justify-center rounded-2xl", className)} {...props}>
-      <Icon className="h-8 w-8 text-primary" />
+    <div
+      className={cn(
+        "relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white border-opacity-20 bg-white bg-opacity-10 shadow-lg backdrop-blur-[10px]",
+        className,
+      )}
+      {...props}
+    >
+      <Icon className="h-6 w-6 text-white" />
     </div>
   )
 }

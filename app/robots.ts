@@ -5,8 +5,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard/", "/auth/"],
+      disallow: ["/private/", "/admin/"], // Example: disallow specific paths
     },
-    sitemap: "https://www.pulsecloud.com/sitemap.xml",
+    sitemap: "https://pulsecloud.com/sitemap.xml", // Replace with your actual domain
   }
 }

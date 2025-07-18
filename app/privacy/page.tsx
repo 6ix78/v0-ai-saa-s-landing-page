@@ -5,16 +5,18 @@ import Footer from "@/components/footer"
 
 export const metadata: Metadata = {
   title: "Privacy Policy | PulseCloud",
-  description: "Our commitment to protecting your privacy and securing your data in cryptocurrency mining.",
+  description: "Learn about how PulseCloud collects, uses, and protects your personal data.",
 }
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1">
+
+      <main className="flex-grow">
         <PrivacyPolicyTemplate />
       </main>
+
       <Footer />
     </div>
   )

@@ -1,27 +1,31 @@
 "use client"
+
+import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 
-export function HeroSpotlight() {
+interface SpotlightProps {
+  className?: string
+  fill?: string
+}
+
+export function HeroSpotlight({ className, fill }: SpotlightProps) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.2 }}
-        transition={{ duration: 2, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-10 blur-3xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.1 }}
-        transition={{ duration: 2.5, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-5 blur-[100px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.05 }}
-        transition={{ duration: 3, ease: "easeInOut" }}
-      />
-    </div>
+    <svg
+      className={cn("animate-spotlight absolute inset-0 h-full w-full", className)}
+      viewBox="0 0 3787 2842"
+      fill="none"
+    >
+      <motion.circle
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        cx="1920"
+        cy="1420"
+        r="1200"
+        transform="matrix(1 0 0 -1 0 2842)"
+        fill={fill || "white"}
+        fillOpacity="0.05"
+      ></motion.circle>
+    </svg>
   )
 }

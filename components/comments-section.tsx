@@ -1,18 +1,20 @@
 "use client"
 
-import { useState, useEffect, type FormEvent } from "react"
+import { Input } from "@/components/ui/input"
+
+import { Label } from "@/components/ui/label"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
 
 interface Comment {
   id: string
-  post_slug: string
-  author_name: string
-  author_email?: string
+  blog_post_slug: string
+  author: string
   content: string
   created_at: string
 }
@@ -21,9 +23,10 @@ interface CommentsSectionProps {
   postSlug: string
 }
 
-export default function CommentsSection({ postSlug }: CommentsSectionProps) {
+export function CommentsSection({ postSlug }: CommentsSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
-  const [newComment, setNewComment] = useState({ author_name: "", content: "" })
+  const [newComment, setNewComment] = useState("")
+  const [author, setAuthor] = useState("Anonymous") // In a real app, this would come from user auth
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,15 +35,15 @@ export default function CommentsSection({ postSlug }: CommentsSectionProps) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/comments?post_slug=${postSlug}`)
+      const response = await fetch(`/api/comments?slug=${postSlug}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      const data: Comment[] = await response.json()
-      setComments(data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch comments.")
-      console.error("Error fetching comments:", err)
+      const data = await response.json()
+      setComments(data.comments)
+    } catch (e: any) {
+      setError(`Failed to fetch comments: ${e.message}`)
+      console.error("Error fetching comments:", e)
     } finally {
       setLoading(false)
     }
@@ -50,109 +53,108 @@ export default function CommentsSection({ postSlug }: CommentsSectionProps) {
     fetchComments()
   }, [postSlug])
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
-
-    if (!newComment.author_name.trim() || !newComment.content.trim()) {
-      setError("Name and comment cannot be empty.")
-      setSubmitting(false)
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) {
+      setError("Comment cannot be empty.")
       return
     }
-
+    setSubmitting(true)
+    setError(null)
     try {
       const response = await fetch("/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...newComment, post_slug: postSlug }),
+        body: JSON.stringify({ blog_post_slug: postSlug, author, content: newComment }),
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
-      const addedComment: Comment = await response.json()
-      setComments((prev) => [addedComment, ...prev])
-      setNewComment({ author_name: "", content: "" })
-    } catch (err: any) {
-      setError(err.message || "Failed to submit comment.")
-      console.error("Error submitting comment:", err)
+      const data = await response.json()
+      setComments((prevComments) => [data.comment, ...prevComments])
+      setNewComment("")
+      setError(null)
+    } catch (e: any) {
+      setError(`Failed to submit comment: ${e.message}`)
+      console.error("Error submitting comment:", e)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <section className="mt-12">
-      <h2 className="text-2xl font-bold mb-6">Comments</h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Comments</h2>
 
-      <Card className="mb-8">
+      {/* New Comment Form */}
+      <Card>
         <CardHeader>
-          <CardTitle>Leave a Comment</CardTitle>
+          <CardTitle className="text-lg">Leave a comment</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                placeholder="Your Name"
-                value={newComment.author_name}
-                onChange={(e) => setNewComment({ ...newComment, author_name: e.target.value })}
-                required
-                disabled={submitting}
-              />
-            </div>
-            <div>
-              <Textarea
-                placeholder="Write your comment here..."
-                value={newComment.content}
-                onChange={(e) => setNewComment({ ...newComment, content: e.target.value })}
-                required
-                disabled={submitting}
-              />
-            </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Submitting..." : "Submit Comment"}
-            </Button>
-          </form>
+        <CardContent className="space-y-4">
+          {/* In a real app, author input might be hidden if user is logged in */}
+          <div className="grid gap-2">
+            <Label htmlFor="author">Your Name</Label>
+            <Input
+              id="author"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="Your Name"
+              disabled={submitting}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="comment">Your Comment</Label>
+            <Textarea
+              id="comment"
+              placeholder="Share your thoughts..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="min-h-[100px]"
+              disabled={submitting}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <Button onClick={handleSubmitComment} disabled={submitting || !newComment.trim()}>
+            {submitting ? "Submitting..." : "Submit Comment"}
+          </Button>
         </CardContent>
       </Card>
 
+      {/* Existing Comments */}
       {loading ? (
         <p>Loading comments...</p>
       ) : comments.length === 0 ? (
         <p className="text-muted-foreground">No comments yet. Be the first to comment!</p>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {comments.map((comment) => (
-            <Card key={comment.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4 mb-3">
-                  <Avatar>
-                    <AvatarFallback>
-                      {comment.author_name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
+            <Card key={comment.id} className="bg-gray-50 dark:bg-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.author}`} />
+                    <AvatarFallback>{comment.author.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-semibold">{comment.author_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                    </p>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">{comment.author}</h4>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">{comment.content}</p>
                   </div>
                 </div>
-                <p className="text-sm text-foreground">{comment.content}</p>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
-    </section>
+    </div>
   )
 }

@@ -1,30 +1,37 @@
 "use client"
-import FeatureCard from "./feature-card"
-import { useCases } from "./use-case-icons"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCases as useCaseIcons } from "@/components/use-case-icons" // Corrected import
 
-export default function UseCases() {
+function UseCases() {
   return (
-    <section className="py-20 bg-muted/50 dark:bg-muted/10" id="use-cases" aria-labelledby="use-cases-heading">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-          <div className="space-y-2">
-            <div className="inline-block rounded-lg bg-primary px-3 py-1 text-sm text-primary-foreground mb-2">
-              Use Cases
-            </div>
-            <h2 id="use-cases-heading" className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              Who Benefits from PulseCloud?
-            </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-              Our platform is designed to serve a wide range of users, from individual enthusiasts to large enterprises.
-            </p>
-          </div>
+    <section className="py-16 md:py-24">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Unlock Your Mining Potential</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            PulseCloud offers versatile solutions tailored to various mining needs, from individual enthusiasts to
+            large-scale operations.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {useCases.map((useCase, index) => (
-            <FeatureCard key={index} {...useCase} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {useCaseIcons.map((useCase, index) => (
+            <Card key={index} className="flex flex-col items-center text-center p-6">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 text-blue-600 mb-4 dark:bg-blue-900 dark:text-blue-300">
+                  <useCase.icon className="h-8 w-8" />
+                </div>
+                <CardTitle className="text-xl font-bold">{useCase.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{useCase.description}</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
     </section>
   )
 }
+
+export { UseCases }
+export default UseCases

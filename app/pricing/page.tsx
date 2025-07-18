@@ -1,117 +1,72 @@
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { CheckCircle } from "lucide-react"
-import Link from "next/link"
+import { MiningPackage } from "@/components/mining-packages"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Pricing | PulseCloud",
+  description: "Explore PulseCloud's flexible mining packages and find the perfect plan for your needs.",
+}
 
 export default function PricingPage() {
-  const pricingPlans = [
+  const packages = [
     {
-      name: "Basic",
-      price: "$29",
-      period: "per month",
-      hashRate: "50 MH/s",
-      features: ["Standard cloud mining", "Daily payouts", "Email support", "Access to shared mining pool"],
-      buttonText: "Choose Basic",
-      link: "/auth/signup",
-      isPrimary: false,
+      name: "Starter",
+      price: "$39/month",
+      hashRate: "100 GH/s",
+      features: ["Basic dashboard access", "Email support", "Daily payouts", "Limited rig management"],
     },
     {
-      name: "Standard",
-      price: "$99",
-      period: "per month",
-      hashRate: "200 MH/s",
+      name: "Pro",
+      price: "$99/month",
+      hashRate: "500 GH/s",
       features: [
-        "Enhanced cloud mining",
-        "Priority daily payouts",
-        "24/7 chat support",
-        "Dedicated mining pool access",
-        "Real-time analytics dashboard",
+        "Advanced dashboard",
+        "Priority support",
+        "Hourly payouts",
+        "Full rig management",
+        "Customizable alerts",
       ],
-      buttonText: "Choose Standard",
-      link: "/auth/signup",
-      isPrimary: true,
+      isPopular: true,
     },
     {
-      name: "Premium",
-      price: "$249",
-      period: "per month",
-      hashRate: "500 MH/s",
+      name: "Enterprise",
+      price: "$499/month",
+      hashRate: "2 TH/s",
       features: [
-        "Premium cloud mining",
-        "Instant daily payouts",
         "Dedicated account manager",
-        "Exclusive mining pool access",
-        "Advanced security features",
-        "Customizable reporting",
+        "24/7 phone support",
+        "Instant payouts",
+        "API access",
+        "Custom mining strategies",
+        "DDoS protection",
       ],
-      buttonText: "Choose Premium",
-      link: "/auth/signup",
-      isPrimary: false,
     },
   ]
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="flex-1 py-12 md:py-20">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Our Flexible Pricing</h1>
-              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Find the perfect plan that fits your mining goals and budget.
+
+      <main className="flex-grow">
+        <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-900">
+          <div className="container mx-auto px-4 md:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Flexible Mining Packages</h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Choose the perfect plan that fits your mining ambitions, from individual enthusiasts to large-scale
+                operations.
               </p>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {packages.map((pkg, index) => (
+                <MiningPackage key={index} {...pkg} />
+              ))}
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {pricingPlans.map((plan, index) => (
-              <Card
-                key={index}
-                className={`flex flex-col ${
-                  plan.isPrimary ? "border-primary-foreground shadow-lg scale-105" : "border-border"
-                }`}
-              >
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                  <p className="text-4xl font-bold mt-2">
-                    {plan.price}
-                    <span className="text-lg text-muted-foreground"> {plan.period}</span>
-                  </p>
-                  <p className="text-muted-foreground text-sm">{plan.hashRate}</p>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <ul className="space-y-2 text-muted-foreground">
-                    {plan.features.map((feature, fIndex) => (
-                      <li key={fIndex} className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="pt-6">
-                  <Button asChild className="w-full">
-                    <Link href={plan.link}>{plan.buttonText}</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-
-          <div className="mt-12 text-center">
-            <p className="text-muted-foreground">
-              Looking for custom solutions for large-scale operations?{" "}
-              <Link href="/contact" className="text-primary hover:underline">
-                Contact our sales team
-              </Link>
-              .
-            </p>
-          </div>
-        </div>
+        </section>
       </main>
+
       <Footer />
     </div>
   )
