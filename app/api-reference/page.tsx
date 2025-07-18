@@ -76,9 +76,7 @@ export default function ApiReferencePage() {
             </p>
             <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md text-sm font-mono overflow-x-auto">
               <pre>
-                <code>
-                  Authorization: Bearer YOUR_API_KEY
-                </code>
+                <code>Authorization: Bearer YOUR_API_KEY</code>
               </pre>
             </div>
             <p className="text-muted-foreground">
@@ -107,7 +105,9 @@ export default function ApiReferencePage() {
               <p className="text-muted-foreground">Manage user wallets and retrieve balance information.</p>
               <div className="space-y-2">
                 <h4 className="font-semibold">GET /api/v1/wallets/balance</h4>
-                <p className="text-sm text-muted-foreground">Retrieve the current balance for the authenticated user.</p>
+                <p className="text-sm text-muted-foreground">
+                  Retrieve the current balance for the authenticated user.
+                </p>
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm font-mono overflow-x-auto">
                   <pre>
                     <code>
@@ -120,9 +120,9 @@ export default function ApiReferencePage() {
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm font-mono overflow-x-auto">
                   <pre>
                     <code>
-                      curl -X POST -H "Authorization: Bearer YOUR_API_KEY" -H "Content-Type: application/json" \
-                      -d '{ "amount\": 0.01, \"walletAddress\": \"0x..." }' \
-                      https://api.pulsecloud.com/api/v1/wallets/withdraw
+                      {`curl -X POST -H "Authorization: Bearer YOUR_API_KEY" -H "Content-Type: application/json" \\
+-d '{"amount": 0.01, "walletAddress": "0x..."}' \\
+https://api.pulsecloud.com/api/v1/wallets/withdraw`}
                     </code>
                   </pre>
                 </div>
@@ -155,7 +155,8 @@ export default function ApiReferencePage() {
                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm font-mono overflow-x-auto">
                   <pre>
                     <code>
-                      curl -H "Authorization: Bearer YOUR_API_KEY" https://api.pulsecloud.com/api/v1/mining/earnings?period=daily
+                      curl -H "Authorization: Bearer YOUR_API_KEY"
+                      https://api.pulsecloud.com/api/v1/mining/earnings?period=daily
                     </code>
                   </pre>
                 </div>
@@ -176,4 +177,52 @@ export default function ApiReferencePage() {
               <div className="space-y-2">
                 <h4 className="font-semibold">GET /api/v1/rigs</h4>
                 <p className="text-sm text-muted-foreground">List all registered mining rigs.</p>
-                <div className="bg-gray-100 dark:bg-gray-70\
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm font-mono overflow-x-auto">
+                  <pre>
+                    <code>curl -H "Authorization: Bearer YOUR_API_KEY" https://api.pulsecloud.com/api/v1/rigs</code>
+                  </pre>
+                </div>
+                <h4 className="font-semibold mt-4">POST /api/v1/rigs</h4>
+                <p className="text-sm text-muted-foreground">Register a new mining rig.</p>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm font-mono overflow-x-auto">
+                  <pre>
+                    <code>
+                      {`curl -X POST -H "Authorization: Bearer YOUR_API_KEY" -H "Content-Type: application/json" \\
+-d '{"name": "Rig 1", "hashrate": 100}' \\
+https://api.pulsecloud.com/api/v1/rigs`}
+                    </code>
+                  </pre>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section id="response-format" className="mb-16">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Response Format</h2>
+        <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
+          All API responses follow a consistent JSON format.
+        </p>
+        <Card className="p-6 shadow-md bg-gray-50 dark:bg-gray-800">
+          <CardTitle className="text-xl font-semibold mb-4">Success Response</CardTitle>
+          <CardContent>
+            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md text-sm font-mono overflow-x-auto">
+              <pre>
+                <code>
+                  {`{
+  "success": true,
+  "data": {
+    // Response data here
+  },
+  "message": "Operation completed successfully"
+}`}
+                </code>
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    </div>
+  )
+}
